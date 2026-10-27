@@ -1,0 +1,218 @@
+<div class="app">
+<header class="top">
+<div class="brand">
+<h1>Vermont School District Builder</h1>
+<span class="sub">Group Vermont's towns into school districts and see what changes</span>
+</div>
+<div class="preset">
+<label for="presetSel">Start from</label>
+<select id="presetSel"></select>
+<button class="btn" id="resetBtn" title="Start over: today's supervisory unions and default settings. Your current map is cleared.">Reset</button>
+</div>
+</header>
+<div class="main">
+<div class="mapwrap" id="mapwrap">
+<svg id="map" class="tool-pan" aria-label="Map of Vermont towns colored by district"></svg>
+<div class="toolbar" role="toolbar" aria-label="Map tools">
+<button id="tPan" title="Move the map (H): drag to pan, scroll or pinch to zoom. In other tools, hold Space while dragging." aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M12 2l-3 3M12 2l3 3M12 22l-3-3M12 22l3-3M2 12l3-3M2 12l3 3M22 12l-3-3M22 12l-3 3"/></svg></button>
+<button id="tPaint" title="Paint (P): click or drag to move towns into the selected district" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M18 2l4 4-11 11H7v-4z"/><path d="M7 17c-2 0-4 1-4 4 2 0 4-1 4-4z"/></svg></button>
+<button id="tErase" title="Erase (E): take towns out of every district" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M20 20H8l-5-5 10-10 8 8-6 6"/><path d="M8 10l6 6"/></svg></button>
+<hr>
+<button id="tBrush" title="Brush (B): one town, or a town's whole supervisory union" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" stroke-dasharray="3 3"/></svg></button>
+<button id="tUndo" title="Undo (Ctrl+Z)"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg></button>
+<button id="tRedo" title="Redo (Ctrl+Shift+Z)"><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 000 12h3"/></svg></button>
+<hr>
+<button id="tIn" title="Zoom in"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+<button id="tOut" title="Zoom out"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+<button id="tFit" title="Show the whole state"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+</div>
+<div class="brushchip" id="brushchip"><span class="sw" id="brushSw"></span><span id="brushTxt"></span></div>
+<div class="legend" id="legend" hidden></div>
+<details class="topline" id="topline" open>
+<summary><span>Topline <span class="tl-sub">· today vs. this plan</span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<div class="tl-body" id="toplineBody"></div>
+</details>
+<div class="tip" id="tip" hidden></div>
+</div>
+<aside class="panel">
+<div class="resizer" id="resizer" role="separator" aria-orientation="vertical" aria-label="Drag to resize the side panel" title="Drag to resize · double-click to expand or collapse"></div>
+<div class="tabsbar">
+<div class="tabs" role="tablist">
+<button role="tab" aria-selected="true" data-tab="plan">Plan</button>
+<button role="tab" aria-selected="false" data-tab="districts">Districts</button>
+<button role="tab" aria-selected="false" data-tab="balance">Auto-balance</button>
+<button role="tab" aria-selected="false" data-tab="share">Save &amp; share</button>
+<button role="tab" aria-selected="false" data-tab="about">About</button>
+</div>
+<button class="expand" id="expandBtn" aria-pressed="false" title="Widen the panel over the map" aria-label="Expand panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6l-6 6 6 6M4 12h11M20 4v16"/></svg><span class="vh">Expand</span></button>
+</div>
+
+<section class="pane" data-pane="plan">
+<div>
+<h2 id="planName">Plan</h2>
+<p class="desc" id="planDesc"></p>
+</div>
+<p class="countline" id="countLine"></p>
+<div>
+<h2>Size target</h2>
+<div class="row"><label for="rangeSel" class="vh">Size target</label><select id="rangeSel" style="flex:1;min-width:0"></select></div>
+<p class="rangeinfo" id="rangeInfo"></p>
+</div>
+<div>
+<h2>Paint with district</h2>
+<div class="swatches" id="swatches"></div>
+<div class="namefield"><label for="nameIn" class="vh">District name</label><input id="nameIn" type="text" maxlength="48" placeholder="Name this district"><button class="btn" id="delDist" title="Remove this district; its towns become unassigned">Remove</button></div>
+</div>
+<div>
+<h2>Scorecard <span style="text-transform:none;letter-spacing:0;font-weight:400">· compared with today's supervisory unions</span></h2>
+<div class="score" id="score"></div>
+</div>
+<div>
+<h2>Map</h2>
+<div class="row" style="margin-bottom:8px">
+<label for="colorBy" style="font-size:13px">Shade towns by</label>
+<select id="colorBy">
+<option value="district">District</option>
+<option value="size">Size vs. target</option>
+<optgroup label="Town data">
+<option value="glps">Grand list per student</option>
+<option value="pov">Child poverty (ages 5–17)</option>
+<option value="chg">Enrollment change since 2014</option>
+<option value="st">Public school students</option>
+<option value="dens">Students per square mile</option>
+</optgroup>
+</select>
+</div>
+<div class="seg" id="levelSeg" role="radiogroup" aria-label="Shading level">
+<button role="radio" aria-checked="true" data-level="town">Each town</button>
+<button role="radio" aria-checked="false" data-level="district">District average</button>
+</div>
+<div class="row" style="margin-bottom:8px">
+<label for="overlaySel" style="font-size:13px">Dashed lines</label>
+<select id="overlaySel">
+<option value="">None</option>
+<option value="su" selected>Today's supervisory unions</option>
+<option value="grp">Act 170 merger groupings</option>
+<option value="cesa">Act 170 CESAs</option>
+<option value="county">Counties</option>
+</select>
+</div>
+<div class="layers">
+<label class="check"><input type="checkbox" id="showDots"> School dots <span class="note">(sized by enrollment)</span></label>
+</div>
+<div class="dotkey" id="dotkey" hidden></div>
+</div>
+</section>
+
+<section class="pane" data-pane="districts" hidden>
+<p class="desc">Click a row to paint with that district. Click a header to sort.</p>
+<div class="tablewrap"><table class="dt" id="dtable"></table></div>
+<details class="explainer">
+<summary>How to read these columns</summary>
+<dl>
+<dt><b>Students</b></dt><dd>Public school students living in the district's towns, 2024–25 (VCGI). This is a headcount by town of residence, not the Agency of Education's average daily membership (ADM) that the law uses, so expect differences of a few percent.</dd>
+<dt><b>Since 2014</b></dt><dd>Change in the same count from 2014–15.</dd>
+<dt><b>Span</b></dt><dd>Straight-line distance between the two farthest town centers, in miles. Road distance is longer.</dd>
+<dt><b>GL / student</b></dt><dd>Equalized education grand list (Act 73 basis) divided by students: the property wealth behind each student. <b>vs state</b> compares it with the statewide figure.</dd>
+<dt><b>Child pov.</b></dt><dd>Children 5–17 below the poverty line, ACS 2020–2024. Small towns have wide margins of error; district totals are steadier.</dd>
+<dt><b>Pub. HS, Ind. HS</b></dt><dd>Public schools with grades 9–12 inside the district, and independent schools with grades 9–12 (including the historic academies many towns tuition to).</dd>
+<dt><b>Small</b></dt><dd>Public schools with fewer than 100 students.</dd>
+<dt><b>Pieces</b></dt><dd>More than 1 means the district is split into parts that don't touch.</dd>
+<dt><b>SUs</b></dt><dd>How many of today's supervisory unions have towns in this district.</dd>
+</dl>
+</details>
+</section>
+
+<section class="pane" data-pane="balance" hidden>
+<p class="desc">Let the computer adjust the current plan. It moves towns along district borders, keeps every district in one piece, and works toward the size target. Set how much each goal matters, then run it as many times as you like.</p>
+<div class="field"><label for="wSize">Stay inside the size target</label><output id="oSize"></output><input type="range" id="wSize" min="0" max="5" step="0.1" value="3"></div>
+<div class="field"><label for="wBal">Equal size</label><output id="oBal"></output><input type="range" id="wBal" min="0" max="5" step="0.1" value="0.3"></div>
+<div class="field"><label for="wCompact">Compact shapes (shorter distances)</label><output id="oCompact"></output><input type="range" id="wCompact" min="0" max="5" step="0.1" value="1"></div>
+<div class="field"><label for="wTax">Even tax capacity (grand list per student near the state's)</label><output id="oTax"></output><input type="range" id="wTax" min="0" max="10" step="0.1" value="0"></div>
+<div class="field"><label for="wEcon">Economic mix (child poverty near the state's)</label><output id="oEcon"></output><input type="range" id="wEcon" min="0" max="10" step="0.1" value="0"></div>
+<div class="field"><label for="wKeep">Keep supervisory unions together</label><output id="oKeep"></output><input type="range" id="wKeep" min="0" max="10" step="0.1" value="1"></div>
+<label class="check"><input type="checkbox" id="wholeSU"> Move whole supervisory unions only</label>
+<div class="row">
+<label for="effort" style="font-size:13px">Effort</label>
+<select id="effort"><option value="100000">Quick</option><option value="400000" selected>Normal</option><option value="1200000">Thorough</option></select>
+</div>
+<div class="row"><button class="btn primary" id="runOpt">Run auto-balance</button><button class="btn" id="stopOpt" disabled>Stop</button></div>
+<div class="progress"><div id="optBar"></div></div>
+<p class="note" id="optMsg"></p>
+<hr style="border:0;border-top:1px solid var(--line);width:100%">
+<div>
+<h2>Start a new plan</h2>
+<div class="row">
+<label for="newK" style="font-size:13px">Districts</label>
+<input type="number" id="newK" min="2" max="60" value="20" style="width:80px">
+<button class="btn" id="newSeed">Draw starting map</button>
+<button class="btn" id="newBlank">Blank map</button>
+</div>
+<p class="note" id="newNote">A starting map groups nearby towns into districts of similar size, which you can then refine or auto-balance.</p>
+</div>
+</section>
+
+<section class="pane" data-pane="share" hidden>
+<div>
+<h2>Plan code</h2>
+<p class="desc">This code holds your whole map, including district names. Copy it to save your work or send it to someone; paste a code to load a plan.</p>
+<textarea id="codeBox" spellcheck="false" aria-label="Plan code"></textarea>
+<div class="row"><button class="btn" id="copyCode">Copy code</button><button class="btn" id="loadCode">Load pasted code</button></div>
+</div>
+<div>
+<h2>Town assignment table</h2>
+<p class="desc">One row per town: county, today's supervisory union, its district in this plan, students and grand list (CSV).</p>
+<div class="row"><button class="btn" id="copyCsv">Copy CSV</button><button class="btn" id="dlCsv">Download CSV</button></div>
+</div>
+<p class="note">Your current plan is also saved in this browser automatically.</p>
+</section>
+
+<section class="pane about" data-pane="about" hidden>
+<p class="disclaimer"><b>A personal project.</b> This tool is an independent, personal project. It is not affiliated with, produced by, or endorsed by the State of Vermont, the Agency of Education or VCGI. It uses only publicly available data, and the plans in it are illustrations, not proposals.</p>
+<div>
+<h2>Where things stand</h2>
+<p>Act 73 of 2025 asked a Redistricting Task Force for up to three statewide maps of larger districts. The Task Force's December 2025 report declined to recommend forced mergers. In early 2026 the House and Senate Education Committees each drew a map: the House draft (27 supervisory districts of about 2,000 to 4,000 students) and the Senate's version 6 (12 new supervisory unions plus a "grey area" left as is). Both are loaded as starting points. The Legislature then passed H.955, signed June 18 as Act 170, which makes mergers voluntary but required to be studied: it puts every supervisory union into one of seven Cooperative Educational Service Areas and lists 20 suggested groupings for merger committees. Those are loaded too.</p>
+<p>The State's own builder at <a href="https://map.vermont.gov/education/district-builder/" target="_blank" rel="noopener">map.vermont.gov/education/district-builder</a> (VCGI) also groups towns into districts. This one adds side-by-side comparison with today's map, tax-capacity and poverty measures, contiguity checks and an auto-balancer.</p>
+</div>
+<div>
+<h2>How it works</h2>
+<p>Towns are the building blocks: you move whole towns between districts, and the schools in a town move with it. Today's map is the 52 supervisory unions and supervisory districts, since those are the governance units the consolidation debate is about. Three of them are already in pieces on the map (Kingdom East, Orange East, Montpelier Roxbury).</p>
+<p>The scorecard compares your plan with today's map:</p>
+<ul>
+<li><b>In the size target</b>: districts whose student count is inside the target you pick on the Plan tab.</li>
+<li><b>Grand list per student, highest ÷ lowest</b>: how far apart the richest and poorest districts are in property wealth per student. Lower is more even.</li>
+<li><b>Students near the state's tax capacity</b>: share of students in districts within 25% of the statewide grand list per student.</li>
+<li><b>Child poverty segregation</b>: Theil's H for children 5–17 in and not in poverty across districts (0 = every district has the state's rate).</li>
+<li><b>Longest span</b>: the largest straight-line distance between two town centers in one district.</li>
+<li><b>Without a public high school</b>: districts with no public school serving grades 9–12. Many such towns tuition students to independent academies, shown separately in the Districts tab.</li>
+<li><b>SUs split</b>: today's supervisory unions whose towns end up in more than one district.</li>
+</ul>
+<p>Auto-balance is simulated annealing: it tries thousands of single-town moves along borders and keeps those that improve a weighted score, never breaking a district into pieces. Generated examples are one possible map each, not the best or only answer.</p>
+</div>
+<div>
+<h2>Data</h2>
+<ul>
+<li>Towns, students by town of residence (2014–15 to 2024–25), equalized education grand list, supervisory unions, regions: VCGI's <a href="https://s3.us-east-2.amazonaws.com/vtopendata-prd/_Other/Education/VT_School_Geo.json" target="_blank" rel="noopener">VT_School_Geo.json</a>, the dataset behind the State's builder.</li>
+<li>Schools, enrollment, grades, year built: VCGI <a href="https://s3.us-east-2.amazonaws.com/vtopendata-prd/_Other/Education/schools_all.json" target="_blank" rel="noopener">schools_all.json</a> (2024–25).</li>
+<li>Town boundaries: U.S. Census Bureau cartographic boundary files, county subdivisions, 2024; lakes from TIGER/Line area water.</li>
+<li>Child poverty: American Community Survey 2020–2024 5-year estimates, table B17001.</li>
+<li>House draft map: school-district list in the Joint Fiscal Office's <a href="https://legislature.vermont.gov/Documents/2026/Workgroups/House%20Education/Acts%20and%20Previous%20Major%20Legislation/Act%2073%20of%202025/W~Ezra%20Holben~Estimated%20Act%2073%20Foundation%20Formula%20Impacts%20Based%20on%20District%20Map%20Proposal~3-11-2026.pdf" target="_blank" rel="noopener">March 11, 2026 analysis</a>. Senate map: the district-builder link in <a href="https://legislature.vermont.gov/Documents/2026/Workgroups/Senate%20Education/Acts%20and%20Previous%20Major%20Legislation/Act%2073%20of%202025/Map%20Proposals/W~Seth%20Bongartz~Senate%20Education%20Map%20Information,%20Version%206,%203-23-2026~3-31-2026.pdf" target="_blank" rel="noopener">Senate Ed Map Information, version 6</a>.</li>
+<li>CESAs and merger groupings: <a href="https://legislature.vermont.gov/Documents/2026/Docs/ACTS/ACT170/ACT170%20As%20Enacted.pdf" target="_blank" rel="noopener">Act 170 of 2026</a>, Secs. 2 and 14.</li>
+</ul>
+<p class="note" id="dataNote"></p>
+</div>
+<div>
+<h2>Limits</h2>
+<ul>
+<li>Student counts are by town of residence, not ADM, and include tuition students wherever they attend.</li>
+<li>Merger groupings in Act 170 list school districts; here they are drawn by town. Wells, Middletown Springs, Stratton, Northfield and Williamstown follow their school district rather than their SU.</li>
+<li>The House draft lists school districts; Quarry Valley and Montpelier Roxbury appear under two numbers, so Poultney is placed with Slate Valley and Roxbury with Barre. With those placements, every district's student count is within 4% of JFO's ADM.</li>
+<li>Rivendell and SAU 70 are interstate districts; only their Vermont towns appear.</li>
+<li>Grand list values are on the Act 73 basis used by VCGI and will differ from current tax-year figures.</li>
+</ul>
+</div>
+</section>
+</aside>
+</div>
+</div>
+<div class="toast" id="toast" hidden></div>
